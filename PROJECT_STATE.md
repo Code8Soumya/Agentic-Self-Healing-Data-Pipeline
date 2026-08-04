@@ -1,15 +1,15 @@
 # 📊 PROJECT_STATE.md — Live Progress Tracker
 
-> **Last updated:** 2026-08-02T23:30:00+05:30  
-> **Updated by:** Antigravity (initial creation)  
-> **Current Phase:** Phase 0 — Planning Complete, Ready to Build  
+> **Last updated:** 2026-08-04T22:25:00+05:30  
+> **Updated by:** Antigravity (Claude Opus 4.6)  
+> **Current Phase:** Phase 1 — GCP Foundation + Data Layer (Skeletons Created)  
 
 ---
 
 ## Overall Progress
 
 ```
-Phase 1: GCP Foundation + Data Layer    [ ] Not Started     (Week 1-2)
+Phase 1: GCP Foundation + Data Layer    [/] In Progress     (Week 1-2)
 Phase 2: MCP Servers + Guardrails       [ ] Not Started     (Week 3)
 Phase 3: LangGraph Agent + ADK          [ ] Not Started     (Week 4)
 Phase 4: Next.js Dashboard              [ ] Not Started     (Week 5)
@@ -23,32 +23,32 @@ Phase 6: CI/CD + Documentation          [ ] Not Started     (Week 7)
 
 ## Phase 1: GCP Foundation + Data Layer
 
-**Status:** `[ ] NOT STARTED`  
+**Status:** `[/] IN PROGRESS — Skeletons created, need implementation`  
 **Target:** Working Dataflow pipeline reading from Pub/Sub, validating schemas, writing to BigQuery, routing errors to error topic.  
 **Breakpoint Test:** Generate events → check BigQuery for clean data + error topic for invalid events.
 
 | ID | Task | Status | File(s) | Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| 1.1 | Create GCP project, enable APIs | `[ ]` | `scripts/setup_gcp.sh` | |
-| 1.2 | Terraform: Pub/Sub topics + subs | `[ ]` | `infra/terraform/pubsub.tf` | |
-| 1.3 | Terraform: BigQuery dataset + tables | `[ ]` | `infra/terraform/bigquery.tf` | |
-| 1.4 | Terraform: GCS bucket for Iceberg | `[ ]` | `infra/terraform/main.tf` | |
-| 1.5 | Terraform: IAM service accounts | `[ ]` | `infra/terraform/iam.tf` | |
-| 1.6 | Run `terraform apply` | `[ ]` | All terraform | Depends: 1.2-1.5 |
-| 1.7 | Build event Pydantic models | `[ ]` | `backend/app/models/events.py` | |
-| 1.8 | Build order event generator | `[ ]` | `backend/data_generator/order_events.py` | |
-| 1.9 | Build inventory event generator | `[ ]` | `backend/data_generator/inventory_events.py` | |
-| 1.10 | Build user activity generator | `[ ]` | `backend/data_generator/user_activity_events.py` | |
-| 1.11 | Build drift injector | `[ ]` | `backend/data_generator/drift_injector.py` | |
-| 1.12 | Build anomaly injector | `[ ]` | `backend/data_generator/anomaly_injector.py` | |
-| 1.13 | Build generator orchestrator | `[ ]` | `backend/data_generator/generator.py` | Depends: 1.8-1.12 |
-| 1.14 | Build Beam schema definitions | `[ ]` | `backend/streaming/schemas/*.py` | |
-| 1.15 | Build Beam JSON parser DoFn | `[ ]` | `backend/streaming/transforms/parse_json.py` | |
-| 1.16 | Build Beam schema validator DoFn | `[ ]` | `backend/streaming/transforms/validate_schema.py` | |
-| 1.17 | Build Beam quality checker DoFn | `[ ]` | `backend/streaming/transforms/check_quality.py` | |
-| 1.18 | Build Beam router DoFn | `[ ]` | `backend/streaming/transforms/route_events.py` | |
-| 1.19 | Build main Beam pipeline | `[ ]` | `backend/streaming/pipeline.py` | Depends: 1.15-1.18 |
-| 1.20 | Deploy pipeline to Dataflow | `[ ]` | `infra/terraform/dataflow.tf` | Depends: 1.6, 1.19 |
+| 1.1 | Create GCP project, enable APIs | `[/]` | `scripts/setup_gcp.sh` | ✅ Script created, needs execution |
+| 1.2 | Terraform: Pub/Sub topics + subs | `[/]` | `infra/terraform/pubsub.tf` | ✅ Full resource definitions written |
+| 1.3 | Terraform: BigQuery dataset + tables | `[/]` | `infra/terraform/bigquery.tf` | ✅ Full resource definitions written |
+| 1.4 | Terraform: GCS bucket for Iceberg | `[/]` | `infra/terraform/main.tf` | ✅ Full resource definitions written |
+| 1.5 | Terraform: IAM service accounts | `[/]` | `infra/terraform/iam.tf` | ✅ Full resource definitions written |
+| 1.6 | Run `terraform apply` | `[ ]` | All terraform | Depends: 1.2-1.5, needs User execution |
+| 1.7 | Build event Pydantic models | `[/]` | `backend/app/models/events.py` | ✅ Full models with field definitions |
+| 1.8 | Build order event generator | `[/]` | `backend/data_generator/order_events.py` | Skeleton + constants, needs logic impl |
+| 1.9 | Build inventory event generator | `[/]` | `backend/data_generator/inventory_events.py` | Skeleton + constants, needs logic impl |
+| 1.10 | Build user activity generator | `[/]` | `backend/data_generator/user_activity_events.py` | Skeleton + constants, needs logic impl |
+| 1.11 | Build drift injector | `[/]` | `backend/data_generator/drift_injector.py` | Skeleton, needs logic impl |
+| 1.12 | Build anomaly injector | `[/]` | `backend/data_generator/anomaly_injector.py` | Skeleton, needs logic impl |
+| 1.13 | Build generator orchestrator | `[/]` | `backend/data_generator/generator.py` | Skeleton + CLI, needs logic impl |
+| 1.14 | Build Beam schema definitions | `[/]` | `backend/streaming/schemas/*.py` | ✅ Full schema dicts defined |
+| 1.15 | Build Beam JSON parser DoFn | `[/]` | `backend/streaming/transforms/parse_json.py` | Skeleton, needs process() impl |
+| 1.16 | Build Beam schema validator DoFn | `[/]` | `backend/streaming/transforms/validate_schema.py` | Skeleton, needs process() impl |
+| 1.17 | Build Beam quality checker DoFn | `[/]` | `backend/streaming/transforms/check_quality.py` | Skeleton, needs process() impl |
+| 1.18 | Build Beam router DoFn | `[/]` | `backend/streaming/transforms/route_events.py` | Skeleton, needs process() impl |
+| 1.19 | Build main Beam pipeline | `[/]` | `backend/streaming/pipeline.py` | Skeleton, needs build_pipeline() impl |
+| 1.20 | Deploy pipeline to Dataflow | `[/]` | `infra/terraform/dataflow.tf` | ✅ TF written (commented out for cost) |
 | 1.21 | **BREAKPOINT TEST** | `[ ]` | — | Generate events → verify BQ + error topic |
 
 ---
