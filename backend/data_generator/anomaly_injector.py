@@ -13,6 +13,7 @@ ANOMALY TYPES:
   future_timestamps: Timestamps far in the future
   empty_strings: Required string fields set to ""
 """
+import random
 from typing import Any
 
 ANOMALY_TYPES = [
@@ -46,7 +47,31 @@ def inject_anomaly(event_dict: dict, anomaly_type: str) -> dict:
     Raises:
         ValueError: If anomaly_type is not in ANOMALY_TYPES
     """
-    raise NotImplementedError("TODO: Implement anomaly injection with if/elif chain")
+    mutated = event_dict.copy()
+    if anomaly_type == "null_values":
+        keys = list(mutated.keys())
+        if keys:
+            mutated[random.choice(keys)] = None
+    elif anomaly_type == "outlier_values":
+        if "quantity" in mutated:
+            mutated["quantity"] = 999999
+        elif "unit_price" in mutated:
+            mutated["unit_price"] = -100.0
+    elif anomaly_type == "type_mismatches":
+        if "quantity" in mutated:
+            mutated["quantity"] = "not_a_number"
+    elif anomaly_type == "duplicate_ids":
+        mutated["event_id"] = "DUPLICATE-UUID-1234"
+    elif anomaly_type == "future_timestamps":
+        mutated["timestamp"] = "2099-01-01T00:00:00Z"
+    elif anomaly_type == "empty_strings":
+        if "product_name" in mutated:
+            mutated["product_name"] = ""
+        if "order_id" in mutated:
+            mutated["order_id"] = ""
+    else:
+        raise ValueError(f"Unknown anomaly type: {anomaly_type}")
+    return mutated
 
 
 def inject_random_anomaly(event_dict: dict) -> tuple[dict, str]:
@@ -55,4 +80,5 @@ def inject_random_anomaly(event_dict: dict) -> tuple[dict, str]:
     Returns:
         tuple[dict, str]: (mutated event, which anomaly type was applied)
     """
-    raise NotImplementedError("TODO: Pick random anomaly, call inject_anomaly")
+    anomaly_type = random.choice(ANOMALY_TYPES)
+    return inject_anomaly(event_dict, anomaly_type), anomaly_type

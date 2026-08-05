@@ -15,6 +15,7 @@ DRIFT TYPES:
   D (dropped_field): Removes shipping_address entirely -> HITL escalation
   E (nested_change): Adds fields to shipping_address sub-object
 """
+import random
 from typing import Any
 from app.models.enums import DriftType
 
@@ -43,7 +44,26 @@ def inject_drift(event_dict: dict, drift_type: DriftType) -> dict:
     Raises:
         ValueError: If drift_type is not a valid DriftType
     """
-    raise NotImplementedError("TODO: Implement drift injection with match/case on drift_type")
+    mutated = event_dict.copy()
+    if drift_type == DriftType.NEW_FIELD:
+        mutated["loyalty_points"] = random.randint(10, 100)
+        mutated["discount_code"] = "SAVE10"
+    elif drift_type == DriftType.RENAMED_FIELD:
+        if "unit_price" in mutated:
+            mutated["price_per_unit"] = mutated.pop("unit_price")
+    elif drift_type == DriftType.TYPE_CHANGE:
+        if "quantity" in mutated:
+            mutated["quantity"] = str(mutated["quantity"])
+    elif drift_type == DriftType.DROPPED_FIELD:
+        if "shipping_address" in mutated:
+            mutated.pop("shipping_address")
+    elif drift_type == DriftType.NESTED_CHANGE:
+        if "shipping_address" in mutated:
+            mutated["shipping_address"]["landmark"] = "Near Park"
+            mutated["shipping_address"]["floor"] = random.randint(1, 10)
+    else:
+        raise ValueError(f"Unknown DriftType: {drift_type}")
+    return mutated
 
 
 def inject_random_drift(event_dict: dict) -> tuple[dict, DriftType]:
@@ -55,4 +75,5 @@ def inject_random_drift(event_dict: dict) -> tuple[dict, DriftType]:
     Returns:
         tuple[dict, DriftType]: (mutated event, which drift type was applied)
     """
-    raise NotImplementedError("TODO: Pick random DriftType, call inject_drift")
+    drift_type = random.choice(list(DriftType))
+    return inject_drift(event_dict, drift_type), drift_type

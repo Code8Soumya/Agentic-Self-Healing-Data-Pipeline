@@ -43,17 +43,51 @@ class CheckQualityDoFn(beam.DoFn):
             dict: Quality-valid event (main output)
             pvalue.TaggedOutput: Error info with violation list (ERROR_TAG)
         
-        LOGIC for implementer:
-            1. violations = []
-            2. Check not-null for required fields → violations.append("null: field_name")
-            3. If event_type == "order":
-               - Check quantity in range 1-100
-               - Check unit_price > 0
-               - Check total_amount ≈ quantity * unit_price (within 1% tolerance)
-               - Check timestamp within last 24h and not in future
-            4. If event_type == "inventory":
-               - Check current_stock >= 0
-            5. If no violations → yield element
-            6. If violations → yield TaggedOutput with violation list
         """
-        raise NotImplementedError("TODO: Implement data quality checks")
+        violations = []
+        for k, v in element.items():
+            if v is None or (isinstance(v, str) and str(v).strip() == ""):
+                violations.append(f"null: {k}")
+
+        event_type = element.get("event_type")
+        if event_type == "order":
+            qty = element.get("quantity")
+            if qty is not None and not (1 <= qty <= 100):
+                violations.append("range: quantity must be 1-100")
+            
+            price = element.get("unit_price")
+            if price is not None and price <= 0:
+                violations.append("range: unit_price must be > 0")
+                
+            total = element.get("total_amount")
+            if qty is not None and price is not None and total is not None:
+                expected_total = qty * price
+                if abs(total - expected_total) > (0.01 * expected_total):
+                    violations.append("consistency: total_amount mismatch")
+                    
+            ts_str = element.get("timestamp")
+            if ts_str:
+                try:
+                    ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+                    now = datetime.now(ts.tzinfo) if ts.tzinfo else datetime.utcnow()
+                    if ts > now:
+                        violations.append("timeliness: timestamp in future")
+                    if ts < now - timedelta(hours=24):
+                        violations.append("timeliness: timestamp too old")
+                except ValueError:
+                    violations.append("format: invalid timestamp")
+        elif event_type == "inventory":
+            stock = element.get("current_stock")
+            if stock is not None and stock < 0:
+                violations.append("range: current_stock must be >= 0")
+
+        if not violations:
+            yield element
+        else:
+            yield pvalue.TaggedOutput(self.ERROR_TAG, {
+                "original_event": element,
+                "error_type": "data_quality",
+                "error_message": "Data quality checks failed",
+                "violations": violations,
+                "stage": "check_quality"
+            })

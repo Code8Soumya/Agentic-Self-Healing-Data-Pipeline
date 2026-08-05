@@ -34,9 +34,20 @@ def generate_inventory_event() -> InventoryEvent:
         - current_stock = random base (100-5000) + quantity_change, clamped to >= 0
         - reorder_threshold = random 50-200
     """
-    raise NotImplementedError("TODO: Implement inventory event generation")
+    action = random.choice(ACTIONS)
+    quantity_change = random.randint(10, 500) if action in ["restock", "returned"] else -random.randint(1, 50)
+    base_stock = random.randint(100, 5000)
+    current_stock = max(0, base_stock + quantity_change)
+    return InventoryEvent(
+        product_id=random.choice(PRODUCT_IDS),
+        warehouse_id=random.choice(WAREHOUSES),
+        action=action,
+        quantity_change=quantity_change,
+        current_stock=current_stock,
+        reorder_threshold=random.randint(50, 200)
+    )
 
 
 def generate_inventory_batch(count: int = 10) -> list[InventoryEvent]:
     """Generate a batch of inventory events."""
-    raise NotImplementedError("TODO: Call generate_inventory_event() in a loop")
+    return [generate_inventory_event() for _ in range(count)]

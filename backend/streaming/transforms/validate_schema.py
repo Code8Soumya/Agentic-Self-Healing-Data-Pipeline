@@ -49,15 +49,48 @@ def validate_against_schema(event: dict, schema: dict) -> tuple[bool, Optional[d
                     "type_mismatches": {"field": {"expected": "int", "got": "str"}},
                 }
     
-    LOGIC for implementer:
-        1. Get required fields from schema where required==True
-        2. Check each required field exists in event
-        3. Check no unexpected fields in event (fields not in schema)
-        4. For each present field, check type matches schema type
-        5. Build schema_diff dict with any issues found
-        6. Return (len(issues) == 0, schema_diff or None)
-    """
-    raise NotImplementedError("TODO: Implement schema validation logic")
+        """
+        missing_fields = []
+        extra_fields = []
+        type_mismatches = {}
+        
+        required_fields = [k for k, v in schema.items() if isinstance(v, dict) and v.get("required", False)]
+        
+        for req_field in required_fields:
+            if req_field not in event:
+                missing_fields.append(req_field)
+                
+        for field in event:
+            if field not in schema:
+                extra_fields.append(field)
+                
+        type_mapping = {
+            "string": str,
+            "integer": int,
+            "number": (int, float),
+            "boolean": bool,
+            "object": dict,
+            "array": list
+        }
+        
+        for field, value in event.items():
+            if field in schema and isinstance(schema[field], dict):
+                expected_type_str = schema[field].get("type", "string")
+                expected_type = type_mapping.get(expected_type_str, str)
+                if value is not None and not isinstance(value, expected_type):
+                    if expected_type_str == "number" and isinstance(value, int):
+                        continue
+                    type_mismatches[field] = {
+                        "expected": expected_type_str,
+                        "got": type(value).__name__
+                    }
+                    
+        schema_diff = {}
+        if missing_fields: schema_diff["missing_fields"] = missing_fields
+        if extra_fields: schema_diff["extra_fields"] = extra_fields
+        if type_mismatches: schema_diff["type_mismatches"] = type_mismatches
+        
+        return (len(schema_diff) == 0, schema_diff if schema_diff else None)
 
 
 class ValidateSchemaDoFn(beam.DoFn):
@@ -82,12 +115,27 @@ class ValidateSchemaDoFn(beam.DoFn):
             dict: Valid event (main output)
             pvalue.TaggedOutput: Error info (ERROR_TAG output)
         
-        LOGIC for implementer:
-            1. event_type = element.get("event_type")
-            2. schema = SCHEMA_REGISTRY.get(event_type)
-            3. If no schema found → yield error (unknown event type)
-            4. is_valid, schema_diff = validate_against_schema(element, schema)
-            5. If valid → yield element
-            6. If invalid → yield TaggedOutput with error details + schema_diff
         """
-        raise NotImplementedError("TODO: Implement schema validation DoFn")
+        event_type = element.get("event_type")
+        schema = SCHEMA_REGISTRY.get(event_type)
+        if not schema:
+            yield pvalue.TaggedOutput(self.ERROR_TAG, {
+                "original_event": element,
+                "error_type": "unknown_event_type",
+                "error_message": f"No schema found for event_type: {event_type}",
+                "schema_diff": {},
+                "stage": "validate_schema"
+            })
+            return
+            
+        is_valid, schema_diff = validate_against_schema(element, schema)
+        if is_valid:
+            yield element
+        else:
+            yield pvalue.TaggedOutput(self.ERROR_TAG, {
+                "original_event": element,
+                "error_type": "schema_drift",
+                "error_message": "Schema validation failed",
+                "schema_diff": schema_diff,
+                "stage": "validate_schema"
+            })

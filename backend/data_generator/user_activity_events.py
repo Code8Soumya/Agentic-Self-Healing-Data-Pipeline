@@ -36,9 +36,16 @@ def generate_user_activity_event() -> UserActivityEvent:
         - session_id: UUID4 (can reuse same session for multiple events)
         - referrer: 60% chance None, 40% from REFERRERS list
     """
-    raise NotImplementedError("TODO: Implement user activity event generation")
+    return UserActivityEvent(
+        customer_id=f"CUST-{random.randint(10000, 99999)}",
+        session_id=str(uuid.uuid4()),
+        action=random.choice(ACTIONS),
+        page_url=random.choice(PAGE_URLS),
+        device_type=random.choice(DEVICE_TYPES),
+        referrer=None if random.random() < 0.6 else random.choice([r for r in REFERRERS if r is not None])
+    )
 
 
 def generate_user_activity_batch(count: int = 10) -> list[UserActivityEvent]:
     """Generate a batch of user activity events."""
-    raise NotImplementedError("TODO: Call generate_user_activity_event() in a loop")
+    return [generate_user_activity_event() for _ in range(count)]

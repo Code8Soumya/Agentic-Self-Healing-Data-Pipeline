@@ -63,54 +63,45 @@ def build_pipeline(options: PipelineOptions, project_id: str, region: str = "asi
     Returns:
         beam.Pipeline: Fully constructed pipeline ready to run.
     
-    PIPELINE CONSTRUCTION for implementer:
-        1. Create pipeline: p = beam.Pipeline(options=options)
+        """
+        p = beam.Pipeline(options=options)
         
-        2. Read from Pub/Sub:
-           raw_messages = p | ReadFromPubSub(
-               topic=f"projects/{project_id}/topics/raw-ecommerce-events"
-           )
+        raw_messages = p | "ReadFromPubSub" >> ReadFromPubSub(
+            topic=f"projects/{project_id}/topics/raw-ecommerce-events"
+        )
         
-        3. Parse JSON (with error tagging):
-           parse_result = raw_messages | beam.ParDo(ParseJsonDoFn()).with_outputs(
-               ParseJsonDoFn.ERROR_TAG, main="parsed"
-           )
+        parse_result = raw_messages | "ParseJSON" >> beam.ParDo(ParseJsonDoFn()).with_outputs(
+            ParseJsonDoFn.ERROR_TAG, main="parsed"
+        )
         
-        4. Validate schema (with error tagging):
-           validate_result = parse_result.parsed | beam.ParDo(ValidateSchemaDoFn()).with_outputs(
-               ValidateSchemaDoFn.ERROR_TAG, main="valid_schema"
-           )
+        validate_result = parse_result.parsed | "ValidateSchema" >> beam.ParDo(ValidateSchemaDoFn()).with_outputs(
+            ValidateSchemaDoFn.ERROR_TAG, main="valid_schema"
+        )
         
-        5. Check quality (with error tagging):
-           quality_result = validate_result.valid_schema | beam.ParDo(CheckQualityDoFn()).with_outputs(
-               CheckQualityDoFn.ERROR_TAG, main="valid_quality"
-           )
+        quality_result = validate_result.valid_schema | "CheckQuality" >> beam.ParDo(CheckQualityDoFn()).with_outputs(
+            CheckQualityDoFn.ERROR_TAG, main="valid_quality"
+        )
         
-        6. Route valid events to BigQuery:
-           bq_rows = quality_result.valid_quality | beam.ParDo(RouteValidEventsDoFn())
-           bq_rows | WriteToBigQuery(
-               table=f"{project_id}:ecommerce.orders",
-               schema=ORDER_BQ_SCHEMA,
-               write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND,
-               create_disposition=beam.io.BigQueryDisposition.CREATE_NEVER,
-           )
+        bq_rows = quality_result.valid_quality | "RouteValidEvents" >> beam.ParDo(RouteValidEventsDoFn())
+        bq_rows | "WriteToBigQuery" >> WriteToBigQuery(
+            table=f"{project_id}:ecommerce.orders",
+            schema=ORDER_BQ_SCHEMA,
+            write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND,
+            create_disposition=beam.io.BigQueryDisposition.CREATE_NEVER,
+        )
         
-        7. Merge all error outputs:
-           all_errors = (
-               (parse_result[ParseJsonDoFn.ERROR_TAG],
-                validate_result[ValidateSchemaDoFn.ERROR_TAG],
-                quality_result[CheckQualityDoFn.ERROR_TAG])
-               | beam.Flatten()
-           )
+        all_errors = (
+            (parse_result[ParseJsonDoFn.ERROR_TAG],
+             validate_result[ValidateSchemaDoFn.ERROR_TAG],
+             quality_result[CheckQualityDoFn.ERROR_TAG])
+            | "MergeErrors" >> beam.Flatten()
+        )
         
-        8. Write errors to Pub/Sub:
-           all_errors | beam.Map(format_error_for_pubsub) | WriteToPubSub(
-               topic=f"projects/{project_id}/topics/pipeline-errors"
-           )
+        all_errors | "FormatErrors" >> beam.Map(format_error_for_pubsub) | "WriteErrorsToPubSub" >> WriteToPubSub(
+            topic=f"projects/{project_id}/topics/pipeline-errors"
+        )
         
-        9. return p
-    """
-    raise NotImplementedError("TODO: Implement the full Beam pipeline construction")
+        return p
 
 
 def run() -> None:
@@ -121,15 +112,22 @@ def run() -> None:
         --region: GCP region (default: asia-south1)
         Standard Beam args: --runner, --temp_location, --staging_location, etc.
     
-    LOGIC for implementer:
-        1. Parse known args and pipeline args separately
-        2. Create PipelineOptions from pipeline args
-        3. If runner is DataflowRunner, set streaming=True
-        4. Call build_pipeline(options, project_id, region)
-        5. pipeline.run()
-        6. If DirectRunner, call .wait_until_finish()
-    """
-    raise NotImplementedError("TODO: Implement pipeline runner CLI")
+        """
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--project", required=True, help="GCP project ID")
+        parser.add_argument("--region", default="asia-south1", help="GCP region")
+        
+        known_args, pipeline_args = parser.parse_known_args()
+        
+        options = PipelineOptions(pipeline_args)
+        if options.view_as(StandardOptions).runner == "DataflowRunner":
+            options.view_as(StandardOptions).streaming = True
+            
+        pipeline = build_pipeline(options, known_args.project, known_args.region)
+        result = pipeline.run()
+        
+        if options.view_as(StandardOptions).runner != "DataflowRunner":
+            result.wait_until_finish()
 
 
 if __name__ == "__main__":

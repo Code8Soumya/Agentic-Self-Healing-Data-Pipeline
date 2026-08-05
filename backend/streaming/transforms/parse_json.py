@@ -45,15 +45,15 @@ class ParseJsonDoFn(beam.DoFn):
             dict: Parsed event dict (main output)
             pvalue.TaggedOutput: Error info (ERROR_TAG output)
         
-        LOGIC for implementer:
-            1. decoded = element.decode("utf-8")
-            2. try: parsed = json.loads(decoded)
-            3. yield parsed  # main output
-            4. except json.JSONDecodeError as e:
-            5.   yield pvalue.TaggedOutput(self.ERROR_TAG, {
-                     "raw_message": decoded[:1000],
-                     "error": str(e),
-                     "stage": "parse_json"
-                 })
         """
-        raise NotImplementedError("TODO: Implement JSON parsing with error tagging")
+        try:
+            decoded = element.decode("utf-8")
+            parsed = json.loads(decoded)
+            yield parsed
+        except Exception as e:
+            raw_msg = element.decode("utf-8", errors="replace")[:1000] if isinstance(element, bytes) else str(element)[:1000]
+            yield pvalue.TaggedOutput(self.ERROR_TAG, {
+                "raw_message": raw_msg,
+                "error": str(e),
+                "stage": "parse_json"
+            })

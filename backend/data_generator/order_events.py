@@ -61,7 +61,33 @@ def generate_order_event() -> OrderEventV1:
         - Called by: generator.py -> EventGeneratorOrchestrator.generate_batch()
         - Output feeds: Pub/Sub raw-ecommerce-events topic
     """
-    raise NotImplementedError("TODO: Implement order event generation using random.choice from constants above")
+    product = random.choice(PRODUCT_CATALOG)
+    quantity = random.randint(1, 5)
+    unit_price = product["price"]
+    total_amount = quantity * unit_price
+    city = random.choice(CITIES)
+    
+    address = ShippingAddress(
+        city=city["city"],
+        state=city["state"],
+        country="IN",
+        pincode=city["pincode"]
+    )
+    
+    return OrderEventV1(
+        order_id=f"ORD-2026-{random.randint(10000, 99999)}",
+        customer_id=f"CUST-{random.randint(10000, 99999)}",
+        product_id=product["id"],
+        product_name=product["name"],
+        category=product["category"],
+        quantity=quantity,
+        unit_price=unit_price,
+        total_amount=total_amount,
+        currency=random.choice(CURRENCIES),
+        payment_method=random.choice(PAYMENT_METHODS),
+        status=random.choice(STATUSES),
+        shipping_address=address
+    )
 
 
 def generate_order_batch(count: int = 10) -> list[OrderEventV1]:
@@ -73,4 +99,4 @@ def generate_order_batch(count: int = 10) -> list[OrderEventV1]:
     Returns:
         list[OrderEventV1]: List of generated order events
     """
-    raise NotImplementedError("TODO: Call generate_order_event() in a loop")
+    return [generate_order_event() for _ in range(count)]

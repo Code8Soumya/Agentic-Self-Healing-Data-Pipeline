@@ -38,17 +38,20 @@ def flatten_order_for_bq(event: dict) -> dict:
             - ingested_at added as current UTC timestamp
             - event_type removed (not stored in BQ)
     
-    LOGIC for implementer:
-        1. Copy event dict
-        2. address = flat.pop("shipping_address", {})
-        3. flat["shipping_city"] = address.get("city", "")
-        4. flat["shipping_state"] = address.get("state", "")
-        5. flat["shipping_pincode"] = address.get("pincode", "")
-        6. flat.pop("event_type", None)
-        7. flat["ingested_at"] = datetime.utcnow().isoformat()
-        8. return flat
-    """
-    raise NotImplementedError("TODO: Implement order event flattening for BigQuery")
+        """
+        flat = event.copy()
+        address = flat.pop("shipping_address", {})
+        if isinstance(address, dict):
+            flat["shipping_city"] = address.get("city", "")
+            flat["shipping_state"] = address.get("state", "")
+            flat["shipping_pincode"] = address.get("pincode", "")
+        else:
+            flat["shipping_city"] = ""
+            flat["shipping_state"] = ""
+            flat["shipping_pincode"] = ""
+        flat.pop("event_type", None)
+        flat["ingested_at"] = datetime.utcnow().isoformat()
+        return flat
 
 
 def format_error_for_pubsub(error: dict) -> bytes:
@@ -60,11 +63,8 @@ def format_error_for_pubsub(error: dict) -> bytes:
     Returns:
         bytes: JSON-encoded error message ready for Pub/Sub
     
-    LOGIC:
-        1. Ensure all values are JSON-serializable (handle datetime with default=str)
-        2. json.dumps(error, default=str).encode("utf-8")
-    """
-    raise NotImplementedError("TODO: Implement error serialization")
+        """
+        return json.dumps(error, default=str).encode("utf-8")
 
 
 class RouteValidEventsDoFn(beam.DoFn):
@@ -87,9 +87,11 @@ class RouteValidEventsDoFn(beam.DoFn):
         Yields:
             dict: Flattened dict ready for BigQuery WriteToBigQuery transform
         
-        LOGIC:
-            1. event_type = element.get("event_type", "order")
-            2. If "order": yield flatten_order_for_bq(element)
-            3. Else: yield element with ingested_at added (simple flat events)
         """
-        raise NotImplementedError("TODO: Implement event routing to BigQuery")
+        event_type = element.get("event_type", "order")
+        if event_type == "order":
+            yield flatten_order_for_bq(element)
+        else:
+            flat = element.copy()
+            flat["ingested_at"] = datetime.utcnow().isoformat()
+            yield flat
