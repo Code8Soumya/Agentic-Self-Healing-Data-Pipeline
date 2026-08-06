@@ -14,7 +14,6 @@ ANOMALY TYPES:
   empty_strings: Required string fields set to ""
 """
 import random
-from typing import Any
 
 ANOMALY_TYPES = [
     "null_values",
@@ -28,14 +27,14 @@ ANOMALY_TYPES = [
 
 def inject_anomaly(event_dict: dict, anomaly_type: str) -> dict:
     """Apply a specific data quality anomaly to an event dict.
-    
+
     Args:
         event_dict: A valid event dict
         anomaly_type: Type of anomaly from ANOMALY_TYPES
-    
+
     Returns:
         dict: Event dict with data quality issues injected.
-    
+
     LOGIC NOTES for implementer:
         - "null_values": Set random required field to None
         - "outlier_values": Set quantity=999999 or unit_price=-100
@@ -43,7 +42,7 @@ def inject_anomaly(event_dict: dict, anomaly_type: str) -> dict:
         - "duplicate_ids": Set event_id to a known duplicate value
         - "future_timestamps": Set timestamp to year 2099
         - "empty_strings": Set product_name="" or order_id=""
-    
+
     Raises:
         ValueError: If anomaly_type is not in ANOMALY_TYPES
     """
@@ -76,7 +75,7 @@ def inject_anomaly(event_dict: dict, anomaly_type: str) -> dict:
 
 def inject_random_anomaly(event_dict: dict) -> tuple[dict, str]:
     """Apply a random anomaly type to an event.
-    
+
     Returns:
         tuple[dict, str]: (mutated event, which anomaly type was applied)
     """

@@ -12,7 +12,7 @@ DATA DOMAIN:
 """
 import random
 import uuid
-from datetime import datetime
+
 from app.models.events import UserActivityEvent
 
 ACTIONS = ["page_view", "add_to_cart", "checkout_start", "search", "wishlist_add"]
@@ -27,10 +27,10 @@ REFERRERS = [None, "https://google.com", "https://instagram.com", "https://faceb
 
 def generate_user_activity_event() -> UserActivityEvent:
     """Generate a single user activity event.
-    
+
     Returns:
         UserActivityEvent: Event with random action, device, page, and referrer.
-    
+
     LOGIC NOTES for implementer:
         - customer_id: random "CUST-" + 5 digit number (range 1-1000)
         - session_id: UUID4 (can reuse same session for multiple events)
@@ -42,7 +42,10 @@ def generate_user_activity_event() -> UserActivityEvent:
         action=random.choice(ACTIONS),
         page_url=random.choice(PAGE_URLS),
         device_type=random.choice(DEVICE_TYPES),
-        referrer=None if random.random() < 0.6 else random.choice([r for r in REFERRERS if r is not None])
+        referrer=(
+            None if random.random() < 0.6
+            else random.choice([r for r in REFERRERS if r is not None])
+        )
     )
 
 

@@ -16,15 +16,16 @@ SCHEMA VERSIONS:
   2. The BigQuery table schema in infra/terraform/bigquery.tf
   3. The frontend TypeScript types in frontend/src/lib/types.ts
 """
-from datetime import datetime, date
-from typing import Literal, Optional, Union
-from pydantic import BaseModel, Field
 import uuid
+from datetime import date, datetime
+from typing import Literal, Optional, Union
+
+from pydantic import BaseModel, Field
 
 
 class ShippingAddress(BaseModel):
     """Shipping address embedded in order events.
-    
+
     NOTE: Schema drift Type E (nested_change) may add new fields here
     like 'state' and 'pincode'. The agent must handle this.
     """
@@ -36,11 +37,11 @@ class ShippingAddress(BaseModel):
 
 class OrderEventV1(BaseModel):
     """Baseline order event schema (v1).
-    
+
     This is the 'expected' schema that the BigQuery table is built for.
     When upstream systems add new fields, the pipeline detects schema drift
     and the healing agent must evolve the table schema.
-    
+
     Args (all fields):
         event_id: UUID string, auto-generated if not provided
         event_type: Always "order" (literal)
@@ -77,12 +78,12 @@ class OrderEventV1(BaseModel):
 
 class OrderEventV2(OrderEventV1):
     """Schema-drifted order event (v2) — Type A drift: new fields added.
-    
+
     Inherits all V1 fields and adds:
     - loyalty_points: Upstream loyalty system integration
     - discount_code: Promotional code applied
     - estimated_delivery: Delivery ETA
-    
+
     The healing agent must detect these new fields and run:
     ALTER TABLE ecommerce.orders ADD COLUMN loyalty_points INT64;
     ALTER TABLE ecommerce.orders ADD COLUMN discount_code STRING;
@@ -95,7 +96,7 @@ class OrderEventV2(OrderEventV1):
 
 class InventoryEvent(BaseModel):
     """Inventory update event from warehouse systems.
-    
+
     Args:
         event_id: UUID
         event_type: Always "inventory"
@@ -120,7 +121,7 @@ class InventoryEvent(BaseModel):
 
 class UserActivityEvent(BaseModel):
     """User clickstream/activity event.
-    
+
     Args:
         event_id: UUID
         event_type: Always "user_activity"
@@ -149,10 +150,10 @@ EcommerceEvent = Union[OrderEventV1, InventoryEvent, UserActivityEvent]
 
 class ErrorEvent(BaseModel):
     """Error event published to the pipeline-errors Pub/Sub topic.
-    
+
     Created by the Beam pipeline when an event fails validation.
     Consumed by the FastAPI gateway to trigger the healing agent.
-    
+
     Args:
         error_id: UUID for this error occurrence
         original_event: The raw event dict that failed

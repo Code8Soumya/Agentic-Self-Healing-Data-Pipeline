@@ -12,6 +12,7 @@ ERROR HANDLING:
 """
 import json
 import logging
+
 import apache_beam as beam
 from apache_beam import pvalue
 
@@ -20,38 +21,41 @@ logger = logging.getLogger(__name__)
 
 class ParseJsonDoFn(beam.DoFn):
     """Parses raw Pub/Sub message bytes into Python dicts.
-    
+
     Beam DoFn that:
     1. Decodes bytes to UTF-8 string
     2. Parses JSON string to dict
     3. Yields the dict to main output
     4. On failure, yields error info to tagged output 'parse_errors'
-    
+
     Tagged Outputs:
         main: Successfully parsed dict
         parse_errors: Dict with {"raw_message": str, "error": str, "stage": "parse_json"}
     """
-    
+
     # Define tagged output for errors
     ERROR_TAG = "parse_errors"
-    
+
     def process(self, element: bytes) -> None:
         """Parse a single Pub/Sub message.
-        
+
         Args:
             element: Raw bytes from Pub/Sub ReadFromPubSub
-        
+
         Yields:
             dict: Parsed event dict (main output)
             pvalue.TaggedOutput: Error info (ERROR_TAG output)
-        
+
         """
         try:
             decoded = element.decode("utf-8")
             parsed = json.loads(decoded)
             yield parsed
         except Exception as e:
-            raw_msg = element.decode("utf-8", errors="replace")[:1000] if isinstance(element, bytes) else str(element)[:1000]
+            if isinstance(element, bytes):
+                raw_msg = element.decode("utf-8", errors="replace")[:1000]
+            else:
+                raw_msg = str(element)[:1000]
             yield pvalue.TaggedOutput(self.ERROR_TAG, {
                 "raw_message": raw_msg,
                 "error": str(e),

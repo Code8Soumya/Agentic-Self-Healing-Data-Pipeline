@@ -14,7 +14,7 @@ DATA DOMAIN:
 - Statuses: placed, confirmed, shipped, delivered
 """
 import random
-from datetime import datetime
+
 from app.models.events import OrderEventV1, ShippingAddress
 
 # ── Data Domain Constants ──
@@ -48,7 +48,7 @@ STATUSES = ["placed", "confirmed", "shipped", "delivered"]
 
 def generate_order_event() -> OrderEventV1:
     """Generate a single realistic order event with random but valid data.
-    
+
     Returns:
         OrderEventV1: A fully populated order event with:
             - Random product from PRODUCT_CATALOG
@@ -56,7 +56,7 @@ def generate_order_event() -> OrderEventV1:
             - total_amount = quantity * unit_price
             - Random shipping address from Indian cities
             - Random payment method and currency
-    
+
     CONNECTIONS:
         - Called by: generator.py -> EventGeneratorOrchestrator.generate_batch()
         - Output feeds: Pub/Sub raw-ecommerce-events topic
@@ -66,14 +66,14 @@ def generate_order_event() -> OrderEventV1:
     unit_price = product["price"]
     total_amount = quantity * unit_price
     city = random.choice(CITIES)
-    
+
     address = ShippingAddress(
         city=city["city"],
         state=city["state"],
         country="IN",
         pincode=city["pincode"]
     )
-    
+
     return OrderEventV1(
         order_id=f"ORD-2026-{random.randint(10000, 99999)}",
         customer_id=f"CUST-{random.randint(10000, 99999)}",
@@ -92,10 +92,10 @@ def generate_order_event() -> OrderEventV1:
 
 def generate_order_batch(count: int = 10) -> list[OrderEventV1]:
     """Generate a batch of order events.
-    
+
     Args:
         count: Number of events to generate (default: 10)
-    
+
     Returns:
         list[OrderEventV1]: List of generated order events
     """

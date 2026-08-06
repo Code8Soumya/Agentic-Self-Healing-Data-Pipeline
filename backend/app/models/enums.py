@@ -12,7 +12,7 @@ from enum import Enum
 
 class ErrorType(str, Enum):
     """Types of pipeline errors the healing agent can handle.
-    
+
     Used by: Triage agent to classify errors, routing edges to select specialist agent.
     """
     SCHEMA_DRIFT = "schema_drift"
@@ -22,7 +22,7 @@ class ErrorType(str, Enum):
 
 class DriftType(str, Enum):
     """Specific types of schema drift that can occur.
-    
+
     Used by: drift_injector.py to generate test scenarios,
              schema_evolution agent to determine fix strategy.
     """
@@ -35,7 +35,7 @@ class DriftType(str, Enum):
 
 class Severity(str, Enum):
     """Severity levels for pipeline errors.
-    
+
     Used by: Triage agent output, confidence gate routing, dashboard display.
     """
     LOW = "low"
@@ -46,7 +46,7 @@ class Severity(str, Enum):
 
 class ComplexityLevel(str, Enum):
     """Complexity classification for determining which LLM to use.
-    
+
     Used by: Triage agent output → routes to Gemini Flash (simple) or Pro (complex).
     """
     SIMPLE = "simple"
@@ -55,7 +55,7 @@ class ComplexityLevel(str, Enum):
 
 class EventType(str, Enum):
     """Types of e-commerce events flowing through the pipeline.
-    
+
     Used by: Data generators, Beam pipeline schema validation.
     """
     ORDER = "order"
@@ -65,7 +65,7 @@ class EventType(str, Enum):
 
 class ApprovalStatus(str, Enum):
     """Status of a human-in-the-loop approval request.
-    
+
     Used by: Firestore documents, API endpoints, dashboard display.
     """
     AUTO_APPROVED = "auto_approved"

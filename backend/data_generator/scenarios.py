@@ -11,14 +11,15 @@ Each scenario defines:
   - Which drift/anomaly type to inject
   - Expected agent behavior (for evaluation)
 """
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+
 from app.models.enums import DriftType, ErrorType
 
 
 @dataclass
 class ScenarioConfig:
     """Configuration for a single failure scenario.
-    
+
     Args:
         name: Unique scenario identifier
         description: Human-readable description

@@ -15,6 +15,7 @@ QUALITY CHECKS:
 """
 import logging
 from datetime import datetime, timedelta
+
 import apache_beam as beam
 from apache_beam import pvalue
 
@@ -23,26 +24,26 @@ logger = logging.getLogger(__name__)
 
 class CheckQualityDoFn(beam.DoFn):
     """Runs data quality checks on schema-valid events.
-    
+
     Tagged Outputs:
         main: Quality-valid events ready for BigQuery
         quality_errors: Dict with {"original_event": dict, "error_type": "data_quality",
                                     "error_message": str, "violations": list[str],
                                     "stage": "check_quality"}
     """
-    
+
     ERROR_TAG = "quality_errors"
-    
+
     def process(self, element: dict) -> None:
         """Run quality checks on a single event.
-        
+
         Args:
             element: Schema-valid event dict from ValidateSchemaDoFn
-        
+
         Yields:
             dict: Quality-valid event (main output)
             pvalue.TaggedOutput: Error info with violation list (ERROR_TAG)
-        
+
         """
         violations = []
         for k, v in element.items():
@@ -54,17 +55,17 @@ class CheckQualityDoFn(beam.DoFn):
             qty = element.get("quantity")
             if qty is not None and not (1 <= qty <= 100):
                 violations.append("range: quantity must be 1-100")
-            
+
             price = element.get("unit_price")
             if price is not None and price <= 0:
                 violations.append("range: unit_price must be > 0")
-                
+
             total = element.get("total_amount")
             if qty is not None and price is not None and total is not None:
                 expected_total = qty * price
                 if abs(total - expected_total) > (0.01 * expected_total):
                     violations.append("consistency: total_amount mismatch")
-                    
+
             ts_str = element.get("timestamp")
             if ts_str:
                 try:

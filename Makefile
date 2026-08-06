@@ -13,10 +13,10 @@ format:
 	cd backend && ruff format .
 
 generate-events:
-	cd backend && python -m data_generator.generator
+	cd backend && python -m data_generator.generator --project-id tough-volt-504614-q6
 
 run-pipeline-local:
-	cd backend && python -m streaming.pipeline --runner DirectRunner
+	cd backend && python -m streaming.pipeline --runner DirectRunner --project tough-volt-504614-q6
 
 run-pipeline-gcp:
 	cd backend && python -m streaming.pipeline --runner DataflowRunner

@@ -10,3 +10,5 @@ error_events_topic = "projects/tough-volt-504614-q6/topics/pipeline-errors"
 lakehouse_bucket = "tough-volt-504614-q6-ecommerce-lakehouse"
 raw_events_topic = "projects/tough-volt-504614-q6/topics/raw-ecommerce-events"
 
+source .venv/bin/activate
+

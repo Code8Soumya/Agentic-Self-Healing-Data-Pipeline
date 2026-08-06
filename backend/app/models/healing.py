@@ -8,19 +8,20 @@ CONNECTIONS:
 - Stored in: BigQuery (healing_events table), Firestore (pending_approvals collection)
 - Displayed by: Frontend dashboard (agents page, approvals page)
 """
+import uuid
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, Field
-import uuid
 
-from app.models.enums import ErrorType, Severity, ApprovalStatus, ComplexityLevel
+from pydantic import BaseModel, Field
+
+from app.models.enums import ApprovalStatus, ComplexityLevel, ErrorType, Severity
 
 
 class HealingResult(BaseModel):
     """Complete record of a healing event — written to BigQuery healing_events table.
-    
+
     This model represents the FULL lifecycle of a single error → diagnosis → fix → verify cycle.
-    
+
     Fields map 1:1 to the BigQuery healing_events table columns.
     If you change fields here, update infra/terraform/bigquery.tf.
     """
@@ -50,7 +51,7 @@ class HealingResult(BaseModel):
 
 class ApprovalRequest(BaseModel):
     """Pending approval stored in Firestore pending_approvals collection.
-    
+
     Created by: agents/nodes/escalate.py when confidence < threshold
     Read by: api/approvals.py GET endpoint
     Updated by: api/approvals.py POST approve/reject endpoint
@@ -77,7 +78,7 @@ class ApprovalRequest(BaseModel):
 
 class ApprovalDetail(ApprovalRequest):
     """Extended approval info returned by GET /api/approvals/{id}.
-    
+
     Inherits all ApprovalRequest fields and adds computed/joined data.
     """
     current_schema: Optional[dict] = None  # Current BQ table schema
