@@ -37,7 +37,7 @@ class Settings(BaseSettings):
 
     # ── Vertex AI / LLM ──
     vertex_ai_location: str = "us-central1"
-    gemini_flash_model: str = "gemini-2.0-flash"
+    gemini_flash_model: str = "gemini-3.7-flash"
     gemini_pro_model: str = "gemini-2.5-pro"
 
     # ── Agent Thresholds ──

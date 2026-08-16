@@ -31,7 +31,7 @@ class HealingResult(BaseModel):
     error_subtype: str  # e.g., "new_field", "null_values"
     severity: Severity
     complexity: ComplexityLevel
-    model_used: str  # "gemini-2.0-flash" or "gemini-2.5-pro"
+    model_used: str  # "gemini-3.7-flash" or "gemini-2.5-pro"
     diagnosis: str
     proposed_fix: str  # SQL DDL or remediation command
     rollback_statement: str  # Undo SQL

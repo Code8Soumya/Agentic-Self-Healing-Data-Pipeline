@@ -1,2 +1,0 @@
-Use gemini 3.6 flash serverless instead gemini-2.0-flash
-Use 
