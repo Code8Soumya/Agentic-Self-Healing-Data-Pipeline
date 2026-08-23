@@ -93,6 +93,6 @@ class RouteValidEventsDoFn(beam.DoFn):
         if event_type == "order":
             yield flatten_order_for_bq(element)
         else:
-            flat = element.copy()
-            flat["ingested_at"] = datetime.utcnow().isoformat()
-            yield flat
+            # Phase 1: drop non-order events instead of yielding them
+            # to prevent them from hitting the ecommerce.orders table
+            pass

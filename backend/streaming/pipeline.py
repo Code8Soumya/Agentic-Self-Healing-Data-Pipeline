@@ -102,6 +102,7 @@ def build_pipeline(
         schema=ORDER_BQ_SCHEMA,
         write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND,
         create_disposition=beam.io.BigQueryDisposition.CREATE_NEVER,
+        method="STREAMING_INSERTS",
     )
 
     all_errors = (
@@ -135,8 +136,7 @@ def run() -> None:
     known_args, pipeline_args = parser.parse_known_args()
 
     options = PipelineOptions(pipeline_args)
-    if options.view_as(StandardOptions).runner == "DataflowRunner":
-        options.view_as(StandardOptions).streaming = True
+    options.view_as(StandardOptions).streaming = True
 
     pipeline = build_pipeline(options, known_args.project, known_args.region)
     result = pipeline.run()

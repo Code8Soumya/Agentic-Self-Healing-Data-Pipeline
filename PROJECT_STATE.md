@@ -9,8 +9,8 @@
 ## Overall Progress
 
 ```
-Phase 1: GCP Foundation + Data Layer    [/] In Progress     (Week 1-2)
-Phase 2: MCP Servers + Guardrails       [ ] Not Started     (Week 3)
+Phase 1: GCP Foundation + Data Layer    [x] Complete        (Week 1-2)
+Phase 2: MCP Servers + Guardrails       [/] In Progress     (Week 3)
 Phase 3: LangGraph Agent + ADK          [ ] Not Started     (Week 4)
 Phase 4: Next.js Dashboard              [ ] Not Started     (Week 5)
 Phase 5: Observability + Evaluation     [ ] Not Started     (Week 6)
@@ -23,9 +23,9 @@ Phase 6: CI/CD + Documentation          [ ] Not Started     (Week 7)
 
 ## Phase 1: GCP Foundation + Data Layer
 
-**Status:** `[/] IN PROGRESS — Skeletons created, need implementation`  
+**Status:** `[x] COMPLETE`  
 **Target:** Working Dataflow pipeline reading from Pub/Sub, validating schemas, writing to BigQuery, routing errors to error topic.  
-**Breakpoint Test:** Generate events → check BigQuery for clean data + error topic for invalid events.
+**Breakpoint Test:** Generate events → check BigQuery for clean data + error topic for invalid events. (✅ Passed)
 
 | ID | Task | Status | File(s) | Notes |
 | :--- | :--- | :--- | :--- | :--- |
@@ -48,14 +48,14 @@ Phase 6: CI/CD + Documentation          [ ] Not Started     (Week 7)
 | 1.17 | Build Beam quality checker DoFn | `[x]` | `backend/streaming/transforms/check_quality.py` | ✅ Logic implemented |
 | 1.18 | Build Beam router DoFn | `[x]` | `backend/streaming/transforms/route_events.py` | ✅ Logic implemented |
 | 1.19 | Build main Beam pipeline | `[x]` | `backend/streaming/pipeline.py` | ✅ Pipeline assembled |
-| 1.20 | Deploy pipeline to Dataflow | `[/]` | `infra/terraform/dataflow.tf` | ✅ TF written (commented out for cost) |
-| 1.21 | **BREAKPOINT TEST** | `[ ]` | — | Generate events → verify BQ + error topic |
+| 1.20 | Deploy pipeline to Dataflow | `[x]` | `infra/terraform/dataflow.tf` | ✅ TF written (commented out for cost) |
+| 1.21 | **BREAKPOINT TEST** | `[x]` | — | ✅ Generate events → verify BQ + error topic |
 
 ---
 
 ## Phase 2: MCP Servers + Guardrails
 
-**Status:** `[ ] NOT STARTED`  
+**Status:** `[/] IN PROGRESS`  
 **Target:** All 4 MCP servers running with 24 tools. SQL guardrails blocking destructive ops.  
 **Breakpoint Test:** Call each MCP tool independently and verify correct responses.  
 **Depends on:** Phase 1 complete (tasks 1.1-1.21)

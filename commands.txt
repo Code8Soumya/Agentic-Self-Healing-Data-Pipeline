@@ -1,0 +1,4 @@
+make run-pipeline-local
+
+make generate-events
+

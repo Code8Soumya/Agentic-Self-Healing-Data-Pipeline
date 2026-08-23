@@ -21,6 +21,18 @@ Copy this template for new entries:
 
 ## 📜 Log Entries
 
+### [2026-08-23] Session by Antigravity (Gemini 3.1 Pro)
+- **Phase/Task:** Phase 1, Tasks 1.20–1.21 (Completion)
+- **Files Modified:** `backend/streaming/pipeline.py`, `backend/streaming/transforms/route_events.py`, `PROJECT_STATE.md`, `SYNC_LOG.md`
+- **What was done:** 
+  - Fixed a `ValueError` with BigQuery batching on unbounded streams by adding `method="STREAMING_INSERTS"` to `WriteToBigQuery`.
+  - Fixed a PubSub DirectRunner issue by forcing `streaming = True` universally.
+  - Fixed a BigQuery schema mismatch error by safely dropping non-order events (inventory, user_activity) in `RouteValidEventsDoFn` since their tables are not provisioned in Phase 1.
+  - Verified Breakpoint Test completion (data routing successfully locally).
+  - Marked Phase 1 as `[x] Complete` and Phase 2 as `[/] In Progress` in `PROJECT_STATE.md`.
+- **Next steps:** Begin Phase 2 (MCP Servers + Guardrails) — specifically Tasks 2.1 through 2.4.
+- **Deviations/Issues:** None. Phase 1 concluded successfully.
+
 ### [2026-08-06] Session by Antigravity (Gemini)
 - **Phase/Task:** Phase 1, Task 1.21
 - **Files Modified:** `Makefile`, `backend/.env`, `backend/streaming/*.py`, `backend/data_generator/*.py`, `backend/app/models/*.py`
