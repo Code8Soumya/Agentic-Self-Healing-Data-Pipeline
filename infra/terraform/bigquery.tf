@@ -7,9 +7,15 @@
 #   - Table 1 (orders): Written to by Dataflow pipeline via Beam WriteToBigQuery
 #     Schema must match: streaming/schemas/order_schema.py ORDER_BQ_SCHEMA
 #     Schema must match: app/models/events.py OrderEventV1
-#   - Table 2 (healing_events): Written to by agents/nodes/apply_fix.py
+#   - Table 2 (inventory): Written to by Dataflow pipeline
+#     Schema must match: streaming/schemas/inventory_schema.py INVENTORY_BQ_SCHEMA
+#     Schema must match: app/models/events.py InventoryEvent
+#   - Table 3 (user_activity): Written to by Dataflow pipeline
+#     Schema must match: streaming/schemas/user_activity_schema.py USER_ACTIVITY_BQ_SCHEMA
+#     Schema must match: app/models/events.py UserActivityEvent
+#   - Table 4 (healing_events): Written to by agents/nodes/apply_fix.py
 #     Schema must match: app/models/healing.py HealingResult
-#   - Table 3 (trajectory_scores): Written to by observability/trajectory_evaluator.py
+#   - Table 5 (trajectory_scores): Written to by observability/trajectory_evaluator.py
 #     Schema must match: app/models/trajectory.py TrajectoryScore
 #
 # WARNING: If you change the table schema here, you MUST also update:
@@ -69,7 +75,53 @@ resource "google_bigquery_table" "orders" {
   deletion_protection = false  # Allow terraform destroy in dev
 }
 
-# ── Table 2: Healing Events ──
+# ── Table 2: Inventory (Standard Table) ──
+# Stores inventory update events processed by the Dataflow pipeline.
+resource "google_bigquery_table" "inventory" {
+  dataset_id = google_bigquery_dataset.ecommerce.dataset_id
+  table_id   = "inventory"
+
+  description = "E-commerce inventory events — stock updates, restocks, returns"
+
+  schema = jsonencode([
+    {name = "event_id",           type = "STRING",    mode = "REQUIRED",  description = "Unique event UUID"},
+    {name = "timestamp",          type = "TIMESTAMP", mode = "REQUIRED",  description = "Event timestamp"},
+    {name = "product_id",         type = "STRING",    mode = "REQUIRED",  description = "Product ID"},
+    {name = "warehouse_id",       type = "STRING",    mode = "REQUIRED",  description = "Warehouse ID (WH-XXX-NN)"},
+    {name = "action",             type = "STRING",    mode = "NULLABLE",  description = "Action: restock, sold, returned, damaged"},
+    {name = "quantity_change",    type = "INT64",     mode = "NULLABLE",  description = "Quantity change (positive or negative)"},
+    {name = "current_stock",      type = "INT64",     mode = "NULLABLE",  description = "Current stock level after change"},
+    {name = "reorder_threshold",  type = "INT64",     mode = "NULLABLE",  description = "Reorder threshold level"},
+    {name = "ingested_at",        type = "TIMESTAMP", mode = "NULLABLE",  description = "Pipeline ingestion time"},
+  ])
+
+  deletion_protection = false
+}
+
+# ── Table 3: User Activity (Standard Table) ──
+# Stores user clickstream events processed by the Dataflow pipeline.
+resource "google_bigquery_table" "user_activity" {
+  dataset_id = google_bigquery_dataset.ecommerce.dataset_id
+  table_id   = "user_activity"
+
+  description = "E-commerce user activity events — page views, cart actions, checkouts"
+
+  schema = jsonencode([
+    {name = "event_id",      type = "STRING",    mode = "REQUIRED",  description = "Unique event UUID"},
+    {name = "timestamp",     type = "TIMESTAMP", mode = "REQUIRED",  description = "Event timestamp"},
+    {name = "customer_id",   type = "STRING",    mode = "REQUIRED",  description = "Customer ID"},
+    {name = "session_id",    type = "STRING",    mode = "REQUIRED",  description = "Browser session ID"},
+    {name = "action",        type = "STRING",    mode = "NULLABLE",  description = "Action: page_view, add_to_cart, checkout_start, etc."},
+    {name = "page_url",      type = "STRING",    mode = "NULLABLE",  description = "Page URL visited"},
+    {name = "device_type",   type = "STRING",    mode = "NULLABLE",  description = "Device: mobile, desktop, tablet"},
+    {name = "referrer",      type = "STRING",    mode = "NULLABLE",  description = "Referrer URL"},
+    {name = "ingested_at",   type = "TIMESTAMP", mode = "NULLABLE",  description = "Pipeline ingestion time"},
+  ])
+
+  deletion_protection = false
+}
+
+# ── Table 4: Healing Events ──
 # Stores complete healing event records (diagnosis, fix, verification).
 # Written by the agent after each healing cycle completes.
 resource "google_bigquery_table" "healing_events" {
@@ -106,7 +158,7 @@ resource "google_bigquery_table" "healing_events" {
   deletion_protection = false
 }
 
-# ── Table 3: Trajectory Scores ──
+# ── Table 5: Trajectory Scores ──
 # Stores the 5-metric trajectory evaluation scores for each healing event.
 resource "google_bigquery_table" "trajectory_scores" {
   dataset_id = google_bigquery_dataset.ecommerce.dataset_id

@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     # ── BigQuery ──
     bq_dataset: str = "ecommerce"
     bq_orders_table: str = "orders"
+    bq_inventory_table: str = "inventory"
+    bq_user_activity_table: str = "user_activity"
     bq_healing_table: str = "healing_events"
     bq_trajectory_table: str = "trajectory_scores"
 
@@ -35,6 +37,9 @@ class Settings(BaseSettings):
     # ── GCS ──
     gcs_lakehouse_bucket: str = ""
 
+    # ── Firestore ──
+    firestore_database: str = "(default)"
+
     # ── Vertex AI / LLM ──
     vertex_ai_location: str = "us-central1"
     gemini_flash_model: str = "gemini-3.7-flash"
@@ -44,6 +49,8 @@ class Settings(BaseSettings):
     auto_approve_confidence: float = 0.95
     escalation_confidence: float = 0.80
     max_retries: int = 3
+    token_budget_per_heal: int = 100_000
+    token_budget_per_hour: int = 1_000_000
 
     # ── API ──
     backend_port: int = 8000

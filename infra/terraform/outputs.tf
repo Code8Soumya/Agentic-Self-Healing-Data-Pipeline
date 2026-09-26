@@ -41,3 +41,8 @@ output "agent_service_account_email" {
   description = "Service account for the agent Cloud Run service"
   value       = google_service_account.agent.email
 }
+
+output "firestore_database" {
+  description = "Firestore database name"
+  value       = google_firestore_database.main.name
+}

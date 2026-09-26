@@ -21,6 +21,24 @@ Copy this template for new entries:
 
 ## 📜 Log Entries
 
+### [2026-09-25] Session by Antigravity (Claude Opus 4.6)
+- **Phase/Task:** Phase 1 gap fixes + Phase 2 planning
+- **Files Modified:** 
+  - `infra/terraform/bigquery.tf` — Added missing `inventory` and `user_activity` table definitions
+  - `infra/terraform/firestore.tf` — **Created new file** with Firestore database resource + composite indexes
+  - `infra/terraform/outputs.tf` — Added `firestore_database` output
+  - `backend/app/config.py` — Added `bq_inventory_table`, `bq_user_activity_table`, `firestore_database`, `token_budget_per_heal`, `token_budget_per_hour`
+  - `backend/.env.example` — Added all new env vars to match updated config
+  - `PROJECT_STATE.md` — Updated to reflect fixes
+- **What was done:**
+  - Audited full project for Phase 1 completeness gaps
+  - Found 7 issues: 2 missing BQ tables, missing Firestore TF, Firestore API not in main.tf (already there via individual resource), missing config settings
+  - Fixed all issues — `inventory` and `user_activity` BQ tables now match their Pydantic models and Beam schemas
+  - Created `firestore.tf` with Native mode DB + composite indexes for approval queries and DQ violation queries
+  - Created detailed Phase 2 implementation plan (35 sub-tasks across 6 work streams)
+- **Next steps:** Run `terraform plan` then `terraform apply` to deploy the 2 new BQ tables + Firestore database. Then begin Phase 2 Task 2.1.
+- **Deviations/Issues:** Firestore API was already enabled in `main.tf` via `google_project_service.firestore` (individual resource, not for_each). Agent SA already had `roles/datastore.user` in `iam.tf`. Only the actual `google_firestore_database` resource was missing.
+
 ### [2026-08-23] Session by Antigravity (Gemini 3.1 Pro)
 - **Phase/Task:** Phase 1, Tasks 1.20–1.21 (Completion)
 - **Files Modified:** `backend/streaming/pipeline.py`, `backend/streaming/transforms/route_events.py`, `PROJECT_STATE.md`, `SYNC_LOG.md`
